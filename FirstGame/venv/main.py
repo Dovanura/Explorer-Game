@@ -1,6 +1,9 @@
 import pygame
 pygame.init()
 
+import random
+import time
+
 WIDTH = 800
 HEIGHT = 600
 
@@ -12,6 +15,7 @@ FPS = 60
 #color variables
 GRASS = (0, 75, 25)
 WHITE = (255, 255, 255)
+YELLOW = (255, 255, 0)
 
 class Player:
     PLAYER_HEIGHT, PLAYER_WIDTH = 20, 20
@@ -37,9 +41,26 @@ class Player:
         if left:
             self.x -= self.VEL
 
-def draw(win, player):
+
+class Coin:
+    COIN_COLOR = YELLOW
+    COIN_HEIGHT, COIN_WIDTH = 10, 10
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def draw(self, win):
+        pygame.draw.rect(win, self.COIN_COLOR, (self.x, self.y, self.COIN_WIDTH, self.COIN_HEIGHT))
+
+    def coin_location(self):
+        pass
+
+
+def draw(win, player, coin):
     win.fill(GRASS)
     player.draw(win)
+    coin.draw(win)
 
     pygame.display.update()
 
@@ -53,6 +74,9 @@ def player_movement(keys, player):
     if (keys[pygame.K_a] or keys[pygame.K_LEFT] ) and player.x - player.VEL >=0:
         player.move(left=True)
 
+def collision_handler():
+    pass
+
 def quit_game(run, keys):
 
     if keys[pygame.K_ESCAPE]:
@@ -65,13 +89,18 @@ def main():
     run = True
     clock = pygame.time.Clock()
     player = Player(WIDTH//2 + 10, HEIGHT - 30)
+    
 
     while run:
+        coin = Coin()
         clock.tick(FPS)
-        draw(GAME_WINDOW, player)
+        draw(GAME_WINDOW, player, coin)
 
         keys = pygame.key.get_pressed()
         player_movement(keys, player)
+
+        #collision_handler()
+        coin.location()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
