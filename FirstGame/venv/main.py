@@ -2,7 +2,6 @@ import pygame
 pygame.init()
 
 import random
-import time
 
 WIDTH = 800
 HEIGHT = 600
@@ -26,11 +25,11 @@ class Player:
         self.size = size
         self.color = color
         self.velocity = velocity
-        #self.body = pygame.Rect(self.x, self.y, self.width, self.height)
+        self.body = pygame.Rect(self.x, self.y, self.size, self.size)
+
 
     def draw(self, win):
-        #pygame.draw.rect(win, self.PLAYER_COLOR, self.body)
-        pygame.draw.rect(win, self.color, (self.x, self.y, self.size, self.size))
+        pygame.draw.rect(win, self.color, self.body)
 
     def move(self, up=False, down=False, right=False, left=False):
         if up:
@@ -41,6 +40,8 @@ class Player:
             self.x += self.velocity
         if left:
             self.x -= self.velocity
+
+        self.body.update(self.x, self. y, self.size, self.size)
 
 
 
@@ -66,11 +67,34 @@ class Enemy(Player):
         self.y = random.randint(100, 500)
         self.color = ENEMY_COLOR
         self.size = 25
+        self.vel_choice = [1, 2, 3]
+        self.direction_choice = [-1, 1]
+        self.velocity_x = random.choice(self.vel_choice)
+        self.velocity_y = random.choice(self.vel_choice)
+        self.direction_x = random.choice(self.direction_choice)
+        self.direction_y = random.choice(self.direction_choice)
+        self.body = pygame.Rect(self.x, self. y, self.size, self.size)
 
     def move(self):
-        pass
+        self.x += self.direction_x * self.velocity_x
+        self.y += self.direction_y * self.velocity_y
 
-def draw(win, player, coin, coin_count):
+
+
+        if self.y + self.size >= HEIGHT:
+            self.velocity_y *= -1
+        elif self.y <= 0:
+            self.velocity_y *= -1
+
+        if self.x + self.size >= WIDTH:
+            self.velocity_x *= -1
+        elif self.x <= 0:
+            self.velocity_x *= -1
+
+        self.body.update(self.x, self. y, self.size, self.size)
+
+
+def draw(win, player, coin, coin_count, enemies):
     win.fill(GRASS)
 
     score_text = COUNT_FONT.render(f"{coin_count}", 1, WHITE)
@@ -78,6 +102,11 @@ def draw(win, player, coin, coin_count):
 
     player.draw(win)
     coin.draw(win)
+
+    for i in range(len(enemies)):
+            enemies[i+1].draw(win)
+            enemies[i+1].move()
+    
 
     pygame.display.update()
 
@@ -91,47 +120,73 @@ def player_movement(keys, player):
     if (keys[pygame.K_a] or keys[pygame.K_LEFT] ) and player.x - player.velocity >=0:
         player.move(left=True)
 
-def collision_handler(player, coin):
+def coin_collector(player, coin):
     if player.x <= coin.x <= player.x + player.size:
         if player.y <= coin.y <= player.y + player.size:
             coin.move()
             return True
         
+def enemy_collision(player, enemy):
+    if player.body.colliderect(enemy.body):
+        return True
+
+
 
 def main():
-    #this is the main function for running the game loop.
-    run = True
-    clock = pygame.time.Clock()
-    coinx = 400
-    coiny = 300
+    replay = True
+    while replay:
+        #this is the main function for running the game loop.
+        run = True
+        clock = pygame.time.Clock()
+        coinx = 400
+        coiny = 300
+        coin_count = 0
 
-    #Game Objects init
-    player = Player(WIDTH//2 + 10, HEIGHT - 30)
-    enemies = []
-    coin = Coin(coinx, coiny)
-    coin_count = 0
-    enemy_count = coin_count + 1
-
-    while run:
-        clock.tick(FPS)
-        draw(GAME_WINDOW, player, coin, coin_count)
-
-        keys = pygame.key.get_pressed()
-        player_movement(keys, player)
-
-        if collision_handler(player, coin):
-            coin_count += 1
-            enemies.append(Enemy())
+        #Game Objects init
+        player = Player(WIDTH//2 + 10, HEIGHT - 30)
+        coin = Coin(coinx, coiny)
+        enemies = dict()
+        enemy_count = coin_count
         
+        
+        while run:
+            clock.tick(FPS)
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if enemy_count != coin_count:
+                enemy_count += 1
+                enemies[enemy_count] = Enemy()
+            
+            
+            draw(GAME_WINDOW, player, coin, coin_count, enemies)
+            
+
+            keys = pygame.key.get_pressed()
+            player_movement(keys, player)
+
+            for i in range(len(enemies)):
+                if enemy_collision(player, enemies[i+1]):
+                    lose_text = COUNT_FONT.render(f"Game Over! Score: {coin_count}", 1, WHITE)
+                    GAME_WINDOW.blit(lose_text, (WIDTH//2 - lose_text.get_width()/2, HEIGHT//2 - lose_text.get_height()/2))
+                    pygame.display.update()
+                    pygame.time.delay(3000)
+                    run = False
+                    break
+            
+
+            if coin_collector(player, coin):
+                coin_count += 1
+            
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                    replay = False
+                    break
+
+            if keys[pygame.K_ESCAPE]:
                 run = False
+                replay = False
                 break
-
-        if keys[pygame.K_ESCAPE]:
-            run = False
-            break
         
         
 
