@@ -11,15 +11,17 @@ pygame.display.set_caption("Explorer Game")
 
 FPS = 60
 COUNT_FONT = pygame.font.SysFont("comicsans", 50)
+TEXT_FONT = pygame.font.SysFont("comicsans", 30)
 
 #color variables
 GRASS = (0, 75, 25)
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
 ENEMY_COLOR = (255, 0, 50)
+PLAYER_COLOR = (51, 187, 255)
 
 class Player:
-    def __init__(self, x, y, size=30, color=WHITE, velocity=5):
+    def __init__(self, x, y, size=30, color=PLAYER_COLOR, velocity=5):
         self.x = x
         self.y = y
         self.size = size
@@ -94,11 +96,18 @@ class Enemy(Player):
         self.body.update(self.x, self. y, self.size, self.size)
 
 
-def draw(win, player, coin, coin_count, enemies):
+def draw(win, player, coin, coin_count, enemies, tutorial):
     win.fill(GRASS)
 
     score_text = COUNT_FONT.render(f"{coin_count}", 1, WHITE)
     win.blit(score_text, (WIDTH//2 - score_text.get_width()/2, 20))
+
+    if tutorial:
+        tutorial1 = TEXT_FONT.render("WASD/ARROW KEYS to move around.", 1, WHITE)
+        tutorial2 = TEXT_FONT.render("Collect the Coins and avoid the Enemies!", 1, WHITE)
+
+        win.blit(tutorial1, (WIDTH//2 - tutorial1.get_width()/2, 100))
+        win.blit(tutorial2, (WIDTH//2 - tutorial2.get_width()/2, 140))
 
     player.draw(win)
     coin.draw(win)
@@ -109,6 +118,8 @@ def draw(win, player, coin, coin_count, enemies):
     
 
     pygame.display.update()
+
+
 
 def player_movement(keys, player):
     if (keys[pygame.K_w] or keys[pygame.K_UP]) and player.y - player.velocity >=0:
@@ -137,6 +148,7 @@ def main():
     while replay:
         #this is the main function for running the game loop.
         run = True
+        tutorial = True
         clock = pygame.time.Clock()
         coinx = 400
         coiny = 300
@@ -157,7 +169,7 @@ def main():
                 enemies[enemy_count] = Enemy()
             
             
-            draw(GAME_WINDOW, player, coin, coin_count, enemies)
+            draw(GAME_WINDOW, player, coin, coin_count, enemies, tutorial)
             
 
             keys = pygame.key.get_pressed()
@@ -175,6 +187,7 @@ def main():
 
             if coin_collector(player, coin):
                 coin_count += 1
+                tutorial = False
             
 
             for event in pygame.event.get():
