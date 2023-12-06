@@ -68,7 +68,7 @@ class Enemy(Player):
         self.x = random.randint(100, 700)
         self.y = random.randint(100, 500)
         self.color = ENEMY_COLOR
-        self.size = 25
+        self.size = 20
         self.vel_choice = [1, 2, 3]
         self.direction_choice = [-1, 1]
         self.velocity_x = random.choice(self.vel_choice)
